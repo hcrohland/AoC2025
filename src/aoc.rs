@@ -1,0 +1,14 @@
+pub mod day10solver;
+pub mod day11solver;
+pub mod day12solver;
+pub mod day1solver;
+pub mod day2solver;
+pub mod day3solver;
+pub mod day4solver;
+pub mod day5solver;
+pub mod day6solver;
+pub mod day7solver;
+pub mod day8solver;
+pub mod day9solver;
+pub mod daysolver;
+pub mod filereader;
