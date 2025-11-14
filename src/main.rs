@@ -6,7 +6,7 @@ use crate::aoc::{
     day9solver::Day9Solver, day10solver::Day10Solver, day11solver::Day11Solver,
     day12solver::Day12Solver, daysolver::*, filereader,
 };
-use std::env;
+use std::{env, time::Instant};
 
 pub fn main() {
     let day: u8 = match env::args().find_map(|arg| arg.parse().ok()) {
@@ -30,9 +30,7 @@ pub fn main() {
         10 => run(day, Day10Solver),
         11 => run(day, Day11Solver),
         12 => run(day, Day12Solver),
-        _ => {
-            eprintln!("🚨 Day argument should be between 1 and 12");
-        }
+        _ => eprintln!("🚨 Day argument should be between 1 and 12"),
     }
 }
 
@@ -46,13 +44,21 @@ fn run(day: u8, solver: impl DaySolver) {
     };
 
     println!("🎄 Selected day: {day}");
+    let start = Instant::now();
     match solver.solve_part1(&input) {
-        Ok(i) => println!("🛷 The result of part 1 is {i}."),
+        Ok(i) => println!(
+            "🛷 The result of part 1 is {i} (calculated in {} µs).",
+            start.elapsed().as_micros()
+        ),
         Err(e) => println!("{}", e),
     }
 
+    let start = Instant::now();
     match solver.solve_part2(&input) {
-        Ok(i) => println!("🛷 The result of part 2 is {i}."),
+        Ok(i) => println!(
+            "🛷 The result of part 2 is {i} (calculated in {} µs).",
+            start.elapsed().as_micros()
+        ),
         Err(e) => println!("{}", e),
     }
 }
