@@ -9,3 +9,4 @@
 
 /input/*
 !/input/test.txt
+.vscode/*
