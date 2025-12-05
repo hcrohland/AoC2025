@@ -1,7 +1,7 @@
 use std::{ops::Deref, str::FromStr};
 
 use crate::aoc::DaySolver;
-use anyhow::{anyhow, bail};
+use anyhow::anyhow;
 
 pub struct Solver;
 
@@ -14,8 +14,9 @@ impl DaySolver for Solver {
         ))
     }
 
-    fn solve_part2(&self, _input: &Vec<String>) -> anyhow::Result<i64> {
-        bail!("😱 Part 2 not yet implemented!")
+    fn solve_part2(&self, input: &Vec<String>) -> anyhow::Result<i64> {
+        let (fresh, _) = parse_input(input)?;
+        Ok(fresh.get_id_sum())
     }
 }
 
@@ -37,21 +38,31 @@ impl FromStr for Range {
         Ok(Range { min, max })
     }
 }
+
 struct Fresh(Vec<Range>);
 
 impl Fresh {
     fn new(input: &[String]) -> anyhow::Result<Fresh> {
-        Ok(Fresh(
-            input
-                .iter()
-                .map(|x| dbg!(x).parse())
-                .collect::<Result<Vec<_>, _>>()?,
-        ))
+        let mut f = input
+            .iter()
+            .map(|x| x.parse())
+            .collect::<Result<Vec<_>, _>>()?;
+        f.sort_by(|a: &Range, b: &Range| a.min.cmp(&b.min));
+        Ok(Fresh(f))
     }
 
     fn check_id(&self, item: i64) -> bool {
         self.iter()
             .any(|range| range.min <= item && range.max >= item)
+    }
+
+    fn get_id_sum(&self) -> i64 {
+        let mut end = 0i64;
+        self.iter().fold(0, |res, range| {
+            let new = (range.max - range.min.max(end)).max(0);
+            end = end.max(range.max);
+            res + new
+        })
     }
 }
 
@@ -108,6 +119,7 @@ mod tests {
 
     #[test]
     fn test_solve_part2() -> anyhow::Result<()> {
+        assert_eq!(Solver.solve_part2(&test_strings())?, 14);
         Ok(())
     }
 }
