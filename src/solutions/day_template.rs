@@ -18,16 +18,18 @@ mod tests {
     use super::*;
 
     fn test_strings() -> Vec<String> {
-        vec![""].into_iter().map(|x| x.to_string()).collect()
+        "".lines().into_iter().map(|x| x.to_string()).collect()
     }
 
     #[test]
     fn test_solve_part1() -> anyhow::Result<()> {
+        assert_eq!(Solver.solve_part1(&test_strings())?, 0);
         Ok(())
     }
 
     #[test]
     fn test_solve_part2() -> anyhow::Result<()> {
+        assert_eq!(Solver.solve_part2(&test_strings())?, 0);
         Ok(())
     }
 }
