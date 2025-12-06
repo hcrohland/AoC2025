@@ -10,26 +10,18 @@ impl DaySolver for Solver {
     }
 
     fn solve_part2(&self, input: &Vec<String>) -> anyhow::Result<i64> {
-        let mut input: Vec<String> = input
-            .into_iter()
-            .map(|s| s.chars().rev().collect())
-            .collect();
+        let mut input: Vec<String> = input.to_owned();
         let ops = input.pop().unwrap();
-        let input: Vec<Vec<char>> = transpose(
-            input
-                .into_iter()
-                .map(|s| s.chars().rev().collect())
-                .collect(),
+        let transposed: Vec<Vec<char>> = transpose(
+            input.into_iter().map(|s| s.chars().collect()).collect(),
             ' ',
         );
-        let input: Vec<String> = input
+        let cols: Vec<String> = transposed
             .into_iter()
             .map(|v| v.into_iter().filter(|c| !c.is_whitespace()).collect())
             .collect();
-        let i2 = input.split(|s| s == "").collect::<Vec<_>>();
-        ops.split_whitespace()
-            .rev()
-            .zip(i2)
+        cols.split(|s| s == "")
+            .zip(ops.split_whitespace())
             .map(calculate_col)
             .sum()
     }
@@ -43,7 +35,7 @@ fn calculate_row(mut x: Vec<&str>) -> anyhow::Result<i64> {
     }
 }
 
-fn calculate_col((op, vec): (&str, &[String])) -> anyhow::Result<i64> {
+fn calculate_col((vec, op): (&[String], &str)) -> anyhow::Result<i64> {
     match op {
         "+" => Ok(vec.into_iter().map(|x| x.parse::<i64>().unwrap()).sum()),
         "*" => Ok(vec.into_iter().map(|x| x.parse::<i64>().unwrap()).product()),
