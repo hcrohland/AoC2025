@@ -48,7 +48,8 @@ impl TryFrom<u8> for Day {
             4 => Box::new(day4::Solver),
             5 => Box::new(day5::Solver),
             6 => Box::new(day6::Solver),
-            6..13 => bail!("day {value} not yet implemented"),
+            7 => Box::new(day7::Solver),
+            1..13 => bail!("day {value} not yet implemented"),
             _ => bail!("🚨 Day argument should be between 1 and 12"),
         };
         Ok(Day { day, solver })
