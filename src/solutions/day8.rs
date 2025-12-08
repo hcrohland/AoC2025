@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use crate::aoc::DaySolver;
 use anyhow::bail;
 
@@ -7,15 +5,15 @@ pub struct Solver;
 
 impl DaySolver for Solver {
     fn solve_part1(&self, input: &Vec<String>) -> anyhow::Result<i64> {
-        solve(input, 1000)
+        solve(input, Some(1000))
     }
 
-    fn solve_part2(&self, _input: &Vec<String>) -> anyhow::Result<i64> {
-        bail!("😱 Part 2 not yet implemented!")
+    fn solve_part2(&self, input: &Vec<String>) -> anyhow::Result<i64> {
+        solve(input, None)
     }
 }
 
-fn solve(_input: &Vec<String>, connections: i32) -> Result<i64, anyhow::Error> {
+fn solve(_input: &Vec<String>, connections: Option<i32>) -> Result<i64, anyhow::Error> {
     let mut junctions: Vec<Junction> = _input
         .iter()
         .map(|x| x.try_into())
@@ -23,55 +21,48 @@ fn solve(_input: &Vec<String>, connections: i32) -> Result<i64, anyhow::Error> {
     let distances = calculate_distances(&junctions);
     let mut circuits: Vec<Vec<usize>> = Vec::new();
     let mut cons = 0;
+    let mut circs = 0;
     for Distance { a, b, .. } in distances {
-        if cons == connections {
+        if Some(cons) == connections {
             break;
         }
         cons += 1;
-        print!("{}: {a}-{b} -> ", cons);
         match (junctions[a].circuit, junctions[b].circuit) {
             (None, None) => {
                 let len = circuits.len();
                 junctions[a].circuit = Some(len);
                 junctions[b].circuit = Some(len);
                 circuits.push(vec![a, b]);
-                println!("{len}: {:?}", circuits[len]);
+                circs += 1;
             }
             (None, Some(b)) => {
                 junctions[a].circuit = Some(b);
                 circuits[b].push(a);
-                println!("{b}: {:?}", circuits[b]);
             }
             (Some(a), None) => {
                 junctions[b].circuit = Some(a);
                 circuits[a].push(b);
-                println!("{a}: {:?}", circuits[a]);
             }
-            (Some(a), Some(b)) => {
-                if a != b {
-                    for c in circuits[b].clone() {
-                        junctions[c].circuit = Some(a);
-                        circuits[a].push(c);
+            (Some(n), Some(m)) => {
+                if n != m {
+                    for c in circuits[m].clone() {
+                        junctions[c].circuit = Some(n);
+                        circuits[n].push(c);
                     }
-                    circuits[b] = Vec::new();
-                    println!("{a} += {b}: {:?}", circuits[a]);
+                    circuits[m] = Vec::new();
+                    circs -= 1;
                 } else {
-                    println!("in {a}")
                 }
             }
         }
+        if circs == 1
+            && junctions[a].circuit.and_then(|x| Some(circuits[x].len())) == Some(junctions.len())
+        {
+            return Ok(junctions[a].pos.0 as i64 * junctions[b].pos.0 as i64);
+        }
     }
     circuits.sort_by(|a, b| b.len().cmp(&a.len()));
-    for (i, c) in circuits[0..3].iter().enumerate() {
-        println!("c {i}: {c:?}")
-    }
-    Ok(circuits[0..3]
-        .iter()
-        .map(|c| {
-            println!("{}", c.len());
-            c.len() as i64
-        })
-        .product())
+    Ok(circuits[0..3].iter().map(|c| c.len() as i64).product())
 }
 
 fn calculate_distances(junctions: &[Junction]) -> Vec<Distance> {
@@ -83,9 +74,6 @@ fn calculate_distances(junctions: &[Junction]) -> Vec<Distance> {
         }
     }
     res.sort_by_key(|a| a.distance);
-    // for (i, Distance { a, b, distance }) in res.iter().enumerate() {
-    //     println!("{i}: {a}-{b} {distance}");
-    // }
     res
 }
 
@@ -138,12 +126,6 @@ impl Distance {
     }
 }
 
-impl Display for Distance {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}-{}: {}", self.a, self.b, self.distance)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -181,13 +163,13 @@ mod tests {
             println!("{} {}", s.0, s.1)
         }
 
-        assert_eq!(solve(&test_strings(), 10)?, 40);
+        assert_eq!(solve(&test_strings(), Some(10))?, 40);
         Ok(())
     }
 
     #[test]
     fn test_solve_part2() -> anyhow::Result<()> {
-        assert_eq!(Solver.solve_part2(&test_strings())?, 0);
+        assert_eq!(Solver.solve_part2(&test_strings())?, 25272);
         Ok(())
     }
 }
