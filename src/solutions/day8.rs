@@ -13,56 +13,48 @@ impl DaySolver for Solver {
     }
 }
 
-fn solve(_input: &Vec<String>, connections: Option<i32>) -> Result<i64, anyhow::Error> {
+fn solve(_input: &Vec<String>, connections: Option<usize>) -> Result<i64, anyhow::Error> {
     let mut junctions: Vec<Junction> = _input
         .iter()
         .map(|x| x.try_into())
         .collect::<Result<Vec<_>, _>>()?;
     let distances = calculate_distances(&junctions);
-    let mut circuits: Vec<Vec<usize>> = Vec::new();
-    let mut cons = 0;
-    let mut circs = 0;
-    for Distance { a, b, .. } in distances {
+    let mut circuits: Vec<usize> = Vec::new();
+    for (cons, Distance { a, b, .. }) in distances.into_iter().enumerate() {
         if Some(cons) == connections {
             break;
         }
-        cons += 1;
         match (junctions[a].circuit, junctions[b].circuit) {
             (None, None) => {
                 let len = circuits.len();
                 junctions[a].circuit = Some(len);
                 junctions[b].circuit = Some(len);
-                circuits.push(vec![a, b]);
-                circs += 1;
+                circuits.push(2);
             }
             (None, Some(b)) => {
                 junctions[a].circuit = Some(b);
-                circuits[b].push(a);
+                circuits[b] += 1;
             }
             (Some(a), None) => {
                 junctions[b].circuit = Some(a);
-                circuits[a].push(b);
+                circuits[a] += 1;
             }
             (Some(n), Some(m)) => {
                 if n != m {
-                    for c in circuits[m].clone() {
-                        junctions[c].circuit = Some(n);
-                        circuits[n].push(c);
+                    for junction in junctions.iter_mut().filter(|j| j.circuit == Some(m)) {
+                        junction.circuit = Some(n);
                     }
-                    circuits[m] = Vec::new();
-                    circs -= 1;
-                } else {
+                    circuits[n] += circuits[m];
+                    circuits[m] = 0;
                 }
             }
         }
-        if circs == 1
-            && junctions[a].circuit.and_then(|x| Some(circuits[x].len())) == Some(junctions.len())
-        {
+        if junctions[0].circuit.and_then(|x| Some(circuits[x])) == Some(junctions.len()) {
             return Ok(junctions[a].pos.0 as i64 * junctions[b].pos.0 as i64);
         }
     }
-    circuits.sort_by(|a, b| b.len().cmp(&a.len()));
-    Ok(circuits[0..3].iter().map(|c| c.len() as i64).product())
+    circuits.sort_by(|a, b| b.cmp(&a));
+    Ok(circuits[0..3].iter().map(|c| *c as i64).product())
 }
 
 fn calculate_distances(junctions: &[Junction]) -> Vec<Distance> {
